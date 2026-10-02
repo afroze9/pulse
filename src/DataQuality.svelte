@@ -1,0 +1,9 @@
+<script>
+  export let data;export let projects;export let people;export let types;export let onselect;
+  $: issues=data.stories.filter(s=>projects.includes(s.project||data.epics.find(e=>e.id===s.epic)?.project)&&types.includes(s.type||'story')&&(!s.person||people.includes(s.person))&&(!s.person||s.points===null||s.points===undefined||!s.epic||!s.plannedStart&&!data.sprints.some(sp=>sp.id===s.sprint)));
+  $: epics=types.includes('epic')?data.epics.filter(e=>projects.includes(e.project)&&(!e.plannedStart||!e.plannedEnd)):[];
+</script>
+{#if issues.length||epics.length}<section class="quality-panel"><h2>Work Needing Planning Details</h2><p>Unknown estimates are excluded from load totals. Unassigned or unscheduled work cannot be counted against a person's capacity. Import coverage is limited to the selected Jira projects.</p>
+{#each issues as s}<button onclick={()=>onselect({kind:'story',id:s.id})}><span>{s.id}</span><strong>{s.title}</strong><small>{!s.person?'Unassigned · ':''}{s.points==null?'Unknown estimate · ':''}{!s.epic?'No epic · ':''}{!s.plannedStart&&!data.sprints.some(sp=>sp.id===s.sprint)?'Unscheduled':''}</small></button>{/each}
+{#each epics as e}<button onclick={()=>onselect({kind:'epic',id:e.id})}><span>{e.id}</span><strong>{e.title}</strong><small>No planned date window</small></button>{/each}</section>{/if}
+<style>.quality-panel{background:var(--surface,#fff);border:1px solid var(--line,#e0e7da);border-radius:8px;padding:20px;margin-top:22px}.quality-panel h2{font-size:13px}.quality-panel p{font-size:10px;line-height:1.8;color:var(--muted,#839178);margin:12px 0}.quality-panel button{display:flex;text-align:left;width:100%;padding:13px 0;gap:14px;align-items:center;border-top:1px solid var(--line,#edf1e7);font-size:11px}.quality-panel span{color:var(--muted,#91a080)}.quality-panel strong{flex:1;font-weight:500}.quality-panel small{font-size:10px;color:var(--amber-text,#997c50)}</style>

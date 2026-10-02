@@ -1,0 +1,27 @@
+<script>
+  import Appearance from './Appearance.svelte';
+  import { Settings2, Check, Layers3, Users, ListFilter } from 'lucide-svelte';
+  export let data; export let value; export let onsave; export let disabled=false;
+  let draft=structuredClone(value);
+  $: draft=structuredClone(value);
+  const standardTypes=[{id:'epic',name:'Epic',description:'Roadmap outcomes and project groups'},{id:'story',name:'Story',description:'Estimated work and resource allocations'},{id:'bug',name:'Bug',description:'Defects and fixes'},{id:'task',name:'Task',description:'General delivery work'}];
+  $: types=[...standardTypes,...[...new Set(data.stories.map(s=>s.type||'story'))].filter(id=>!standardTypes.some(t=>t.id===id)).map(id=>({id,name:id.charAt(0).toUpperCase()+id.slice(1),description:'Imported Jira work item type'}))];
+  function toggle(key,id){draft={...draft,[key]:draft[key].includes(id)?draft[key].filter(x=>x!==id):[...draft[key],id]};}
+  function all(key,items){draft={...draft,[key]:items.map(x=>x.id)};}
+</script>
+<div class="page-heading"><div><div class="eyebrow">MAKE PULSE YOUR OWN</div><h1>Configuration</h1><p>Choose the projects, work item types, and people in your planning workspace.</p></div><button class="primary-button" {disabled} onclick={()=>onsave(draft)}><Check size={17}/> Apply Configuration</button></div>
+<Appearance />
+<slot />
+<div class="config-notice"><Settings2 size={19}/><div><strong>Workspace Scope</strong><p>These selections control what appears in the planning views. Known commitments from hidden projects still count toward capacity. Changes are saved to this workspace.</p></div></div>
+<div class="config-grid">
+  <section class="config-card"><header><Layers3 size={18}/><h2>Projects</h2><button onclick={()=>all('projects',data.projects)}>Select All</button></header><p>Available in the timeline’s project filter.</p>{#each data.projects as p}<label><input {disabled} type="checkbox" checked={draft.projects.includes(p.id)} onchange={()=>toggle('projects',p.id)}/><span class="project-dot {p.color}"></span><span><strong>{p.name}</strong><small>{p.key} · {p.description}</small></span></label>{/each}</section>
+  <section class="config-card"><header><ListFilter size={18}/><h2>Work Item Types</h2><button onclick={()=>all('types',types)}>Select All</button></header><p>Epic groups can stay visible even when stories are hidden.</p>{#each types as type}<label><input {disabled} type="checkbox" checked={draft.types.includes(type.id)} onchange={()=>toggle('types',type.id)}/><span><strong>{type.name}</strong><small>{type.description}</small></span></label>{/each}</section>
+  <section class="config-card resources-card"><header><Users size={18}/><h2>Resources</h2><button onclick={()=>all('people',data.people)}>Select All</button></header><p>People shown in resource and work item views.</p><div class="resource-options">{#each data.people as person}<label><input {disabled} type="checkbox" checked={draft.people.includes(person.id)} onchange={()=>toggle('people',person.id)}/><span class="avatar {person.color}">{person.initials}</span><span><strong>{person.name}</strong><small>{person.role}</small></span></label>{/each}</div></section>
+</div>
+<div class="config-summary">{draft.projects.length} projects · {draft.types.length} work item types · {draft.people.length} people selected<span>Capacity: 1 SP / workday · Monday–Friday</span></div>
+{#if !draft.projects.length||!draft.types.length||!draft.people.length}<p class="config-empty">Some views will be empty with this selection. You can return here to enable items at any time.</p>{/if}
+<style>
+  .config-notice{display:flex;align-items:flex-start;gap:14px;background:var(--surface-alt,#edf4e7);border:1px solid var(--line,#dde9d2);padding:20px;border-radius:8px;margin:8px 0 24px;color:var(--muted,#62804d)}.config-notice strong{font-size:12px}.config-notice p{font-size:11px;line-height:1.8;margin-top:5px;color:var(--muted,#7d936b);max-width:760px}
+  .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.config-card{background:var(--surface,#fff);border:1px solid var(--line,#e0e7da);border-radius:9px;padding:23px}.config-card header{display:flex;align-items:center;gap:9px;color:var(--muted,#748b61)}.config-card h2{font-size:14px;color:var(--text,#3c5531)}.config-card header button{margin-left:auto;font-size:10px;color:var(--muted,#588546)}.config-card>p{font-size:10px;color:var(--muted,#93a087);margin:12px 0 18px;line-height:1.7}.config-card label{display:flex;align-items:center;gap:11px;padding:15px 3px;border-top:1px solid var(--line,#edf1e7);cursor:pointer}.config-card label:hover{background:var(--surface-alt,#f8faf4)}.config-card input{width:15px;height:15px;accent-color:#28664e}.config-card strong{display:block;font-size:12px;font-weight:550}.config-card small{display:block;font-size:10px;color:var(--muted,#91a080);margin-top:6px;line-height:1.7}.resources-card{grid-column:1/-1}.resource-options{display:grid;grid-template-columns:repeat(3,1fr);gap:0 20px}.config-summary{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-top:22px;font-size:11px;color:var(--muted,#789065)}.config-summary span{color:var(--muted,#9ba78e);font-size:10px}.config-empty{margin-top:16px;color:var(--amber-text,#ae895b);font-size:11px}
+  @media(max-width:1000px){.resource-options{grid-template-columns:1fr 1fr}}@media(max-width:700px){.config-grid{grid-template-columns:1fr}.resource-options{grid-template-columns:1fr}.config-card{padding:18px}}
+</style>

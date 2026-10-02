@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>  <UserSecretsId>34768606-2963-41f8-86e3-55c231b1ebbe</UserSecretsId>
+  </PropertyGroup>
+<ItemGroup><Compile Remove="Workspace.cs;Models.cs;Jira.cs"/><ProjectReference Include="../core/Pulse.Core.csproj"/></ItemGroup></Project>
+

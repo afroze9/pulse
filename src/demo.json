@@ -1,0 +1,53 @@
+{
+  "people": [
+    {"id":"sara","name":"Sara Ahmed","role":"Frontend engineer","initials":"SA","color":"lavender"},
+    {"id":"ali","name":"Ali Hassan","role":"Backend engineer","initials":"AH","color":"blue"},
+    {"id":"maya","name":"Maya Khan","role":"Product designer","initials":"MK","color":"rose"},
+    {"id":"omar","name":"Omar Farooq","role":"Full-stack engineer","initials":"OF","color":"mint"},
+    {"id":"zara","name":"Zara Malik","role":"QA engineer","initials":"ZM","color":"amber"},
+    {"id":"daniel","name":"Daniel Lee","role":"Data engineer","initials":"DL","color":"blue"}
+  ],
+  "projects": [
+    {"id":"commerce","name":"Commerce","key":"COM","color":"blue","description":"A faster path from cart to checkout","owner":"Sara Ahmed"},
+    {"id":"platform","name":"Platform","key":"PLT","color":"lavender","description":"Shared foundations for every product","owner":"Ali Hassan"},
+    {"id":"insights","name":"Insights","key":"INS","color":"mint","description":"Turn customer data into decisions","owner":"Daniel Lee"}
+  ],
+  "sprints": [
+    {"id":"com24","project":"commerce","name":"Sprint 24","start":"2026-10-05","end":"2026-10-16"},
+    {"id":"com25","project":"commerce","name":"Sprint 25","start":"2026-10-19","end":"2026-10-30"},
+    {"id":"plt18","project":"platform","name":"Sprint 18","start":"2026-10-07","end":"2026-10-20"},
+    {"id":"plt19","project":"platform","name":"Sprint 19","start":"2026-10-21","end":"2026-11-03"},
+    {"id":"ins09","project":"insights","name":"Sprint 09","start":"2026-10-12","end":"2026-10-23"},
+    {"id":"ins10","project":"insights","name":"Sprint 10","start":"2026-10-26","end":"2026-11-06"}
+  ],
+  "epics": [
+    {"id":"COM-100","project":"commerce","title":"Checkout, reimagined","start":"2026-10-05","end":"2026-11-06","status":"At risk","progress":35,"goal":"Increase checkout conversion","milestone":"Checkout beta","target":"2026-11-06","dependsOn":"PLT-100"},
+    {"id":"COM-200","project":"commerce","title":"Subscriptions & loyalty","start":"2026-11-09","end":"2026-12-18","status":"Planned","progress":0,"goal":"Grow repeat purchases","milestone":"Loyalty launch","target":"2026-12-18"},
+    {"id":"PLT-100","project":"platform","title":"Identity & access","start":"2026-10-01","end":"2026-10-30","status":"On track","progress":55,"goal":"One identity across products","milestone":"Identity API ready","target":"2026-10-30"},
+    {"id":"PLT-200","project":"platform","title":"Developer experience","start":"2026-11-02","end":"2026-12-11","status":"Planned","progress":0,"goal":"Reduce deployment lead time","milestone":"Platform v2","target":"2026-12-11"},
+    {"id":"INS-100","project":"insights","title":"Customer intelligence","start":"2026-10-12","end":"2026-11-20","status":"On track","progress":20,"goal":"Understand customer behavior","milestone":"Insights beta","target":"2026-11-20","dependsOn":"PLT-100"},
+    {"id":"INS-200","project":"insights","title":"Self-serve reporting","start":"2026-11-23","end":"2026-12-24","status":"Exploring","progress":0,"goal":"Make analytics accessible","milestone":"Early access","target":"2026-12-24"}
+  ],
+  "stories": [
+    {"id":"COM-141","title":"Express checkout flow","epic":"COM-100","sprint":"com24","person":"sara","points":5,"status":"In progress"},
+    {"id":"COM-142","title":"Saved payment methods","epic":"COM-100","sprint":"com24","person":"sara","points":3,"status":"To do"},
+    {"id":"COM-143","title":"Payment gateway integration","epic":"COM-100","sprint":"com24","person":"ali","points":8,"status":"In progress"},
+    {"id":"COM-144","title":"Payment retry handling","epic":"COM-100","sprint":"com24","person":"ali","points":5,"status":"To do"},
+    {"id":"COM-145","title":"Checkout interaction design","epic":"COM-100","sprint":"com24","person":"maya","points":5,"status":"Done"},
+    {"id":"COM-146","title":"Checkout regression suite","epic":"COM-100","sprint":"com24","person":"zara","points":8,"status":"To do"},
+    {"id":"COM-151","title":"Checkout accessibility","epic":"COM-100","sprint":"com25","person":"sara","points":8,"status":"To do"},
+    {"id":"COM-152","title":"Order confirmation service","epic":"COM-100","sprint":"com25","person":"omar","points":5,"status":"To do"},
+    {"id":"PLT-112","title":"Unified sign-in components","epic":"PLT-100","sprint":"plt18","person":"sara","points":5,"status":"In progress"},
+    {"id":"PLT-113","title":"Token refresh service","epic":"PLT-100","sprint":"plt18","person":"ali","points":5,"status":"In progress"},
+    {"id":"PLT-114","title":"Role-based permissions","epic":"PLT-100","sprint":"plt18","person":"omar","points":8,"status":"In progress"},
+    {"id":"PLT-115","title":"Account switcher design","epic":"PLT-100","sprint":"plt18","person":"maya","points":3,"status":"To do"},
+    {"id":"PLT-116","title":"Identity API contract tests","epic":"PLT-100","sprint":"plt19","person":"zara","points":5,"status":"To do"},
+    {"id":"PLT-117","title":"Audit log endpoints","epic":"PLT-100","sprint":"plt19","person":"ali","points":8,"status":"To do"},
+    {"id":"INS-121","title":"Customer event pipeline","epic":"INS-100","sprint":"ins09","person":"daniel","points":8,"status":"In progress"},
+    {"id":"INS-122","title":"Cohort dashboard","epic":"INS-100","sprint":"ins09","person":"omar","points":5,"status":"To do"},
+    {"id":"INS-123","title":"Dashboard design system","epic":"INS-100","sprint":"ins09","person":"maya","points":5,"status":"To do"},
+    {"id":"INS-124","title":"Attribution model","epic":"INS-100","sprint":"ins10","person":"daniel","points":10,"status":"To do"},
+    {"id":"INS-125","title":"Data quality checks","epic":"INS-100","sprint":"ins10","person":"zara","points":5,"status":"To do"},
+    {"id":"COM-160","title":"Address validation","epic":"COM-100","sprint":null,"person":null,"points":3,"status":"Backlog"}
+  ]
+}

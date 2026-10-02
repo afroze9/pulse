@@ -1,0 +1,55 @@
+/* Shared surfaces and accents cover Svelte components and vis-timeline. */
+:root { color-scheme:light; }
+/* Text tokens deliberately have headroom for pale tinted cards and small labels. */
+:root[data-theme="light"] {
+  --text:#26372f; --ink:#26372f; --muted:#5c665f;
+  --blue-text:#3d5b83; --lavender-text:#60477c; --mint-text:#3f654e;
+  --amber-text:#765626; --danger-text:#884a34;
+  --focus:#28664e; --control-border:#718076;
+}
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --text:#e1ebe5; --ink:#e1ebe5; --muted:#a7b8ae; --green:#8fc7ad;
+  --surface:#1c2924; --surface-alt:#23352c; --line:#34483c; --line-strong:#597563;
+  --accent:#28664e;
+  --focus:#a0d6b1; --control-border:#9ab5a2;
+  --blue-surface:#253a50; --blue-text:#a1c4f0;
+  --lavender-surface:#38304d; --lavender-text:#c5b6e9;
+  --mint-surface:#274636; --mint-text:#a0d6b1;
+  --amber-surface:#423724; --amber-text:#e4c38b;
+  --danger-surface:#462f2b; --danger-text:#ecb09e;
+  background:#14211b;
+}
+:root[data-theme="dark"] body { background:#14211b; color:var(--text); }
+:root[data-theme="dark"] .sidebar { background:#102d25; }
+:root[data-theme="dark"] input,:root[data-theme="dark"] select { color-scheme:dark; }
+:root[data-theme="dark"] .drawer-shade,:root[data-theme="dark"] .modal-shade { background:#060e0bb3; }
+:root[data-theme="dark"] .vis-item.vis-selected { box-shadow:0 0 0 2px #8fc7ad; }
+:root[data-theme="dark"] .vis-time-axis .vis-grid.vis-saturday,:root[data-theme="dark"] .vis-time-axis .vis-grid.vis-sunday { background:#ffffff03; }
+:root[data-theme="dark"] .vis-panel.vis-left.vis-vertical-scroll { scrollbar-color:#597563 #1c2924; }
+:root[data-theme="dark"] .vis-item.vis-background { opacity:.7; }
+
+:root[data-theme="dark"] .connection-fields input { background:var(--surface-alt); color:var(--text); }
+:root[data-theme="dark"] input::placeholder { color:var(--muted); opacity:1; }
+:root[data-theme="dark"] .draw-preview { background:var(--mint-surface); color:var(--mint-text); }
+
+/* Borders on editable controls carry meaning; dividers keep the softer --line. */
+:root input:not([type="checkbox"]):not([type="radio"]),:root select,
+:root .plain-button,:root .filter-trigger { border-color:var(--control-border,#718076); }
+:root button:focus-visible,:root a:focus-visible,:root input:focus,:root select:focus,
+:root .story-row-link:focus-visible { outline:3px solid var(--focus,#28664e); outline-offset:3px; }
+:root .filter-option:has(input:focus-visible) { outline:2px solid var(--focus,#28664e); outline-offset:-2px; }
+:root .appearance-options button.chosen { outline:2px solid var(--focus,#28664e); outline-offset:-1px; }
+:root input::placeholder { color:var(--muted); opacity:1; }
+/* Preserve hierarchy with size/weight, rather than translucent small text. */
+:root .bar-sub,:root .bar-title>span,:root .story-status,:root .booking-highlight p,:root .daily-grid small { opacity:1; }
+:root .project-square.blue { background:var(--blue-surface,#e6eef9); }
+:root .project-square.lavender { background:var(--lavender-surface,#ede8f8); }
+:root .project-square.mint { background:var(--mint-surface,#e4f0e8); }
+:root .vis-item.vis-selected { box-shadow:0 0 0 2px var(--focus,#28664e)!important; }
+:root .vis-item.vis-selected .vis-drag-left,:root .vis-item.vis-selected .vis-drag-right { background:var(--focus,#28664e); opacity:1; }
+
+/* Navigation keeps a dark background even in Light mode. */
+:root .project-nav button>span:last-child { color:#adc8ba; }
+:root .sidebar button:focus-visible { outline-color:#a0d6b1; }
+:root .project-nav button.chosen { box-shadow:inset 3px 0 0 #a0d6b1; }
