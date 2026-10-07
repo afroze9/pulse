@@ -12,7 +12,7 @@ Pulse appears in the Start menu and Windows Installed Apps. Updating or uninstal
 
 [Windows Build and Installer](https://github.com/afroze9/pulse/actions/workflows/windows.yml) runs on main, pull requests, version tags, and manual dispatch. It checks Svelte, runs frontend/backend tests, builds the self-contained application and installer, then validates install, installed-app startup, repair/upgrade, startup again, uninstall, and data preservation. Native startup checks wait for the bundled Svelte UI and successful in-process workspace load, and exercise an isolated encrypted credential key. The real user workspace and Jira credentials are not used by these tests.
 
-Every successful build uploads an installer and SHA256SUMS.txt as workflow artifacts. A tag matching version.json (for example v0.1.0) publishes the tested files as a GitHub prerelease. The release job runs only after the Windows job passes. No deployment credentials are needed: GitHub's repository-scoped token is used only in the release job.
+Every successful build uploads an installer and SHA256SUMS.txt as workflow artifacts. A tag matching version.json (for example v0.1.1) publishes the tested files as a GitHub prerelease. The release job runs only after the Windows job passes. No deployment credentials are needed: GitHub's repository-scoped token is used only in the release job.
 
 Local packaging:
 
@@ -21,7 +21,7 @@ npm ci
 dotnet workload install maui-windows
 ./scripts/Build-Installer.ps1
 # Run lifecycle tests in a clean Windows user profile with no existing installed Pulse.
-./scripts/Test-Installer.ps1 -Installer artifacts/installer/Pulse-0.1.0-win-x64-setup.exe
+./scripts/Test-Installer.ps1 -Installer artifacts/installer/Pulse-0.1.1-win-x64-setup.exe
 ~~~
 
 The pinned Inno Setup compiler is installed per user under LocalAppData/PulseBuild. Its checksum and publisher signature are checked; the bundled WebView2 bootstrapper's Microsoft signature is checked. Installer source is in installer/Pulse.iss. Signing and automatic update delivery are not configured yet.
@@ -147,3 +147,8 @@ The domain tests cover capacity across offset sprints, weekends, reassignment, e
 - Local design screenshots are excluded from Git because they may contain imported Jira data.
 
 Integration checks additionally verified actual dates and configuration across reloads, saved timeline resizing, server Undo, and two-session conflict handling with the losing draft preserved. `scripts/api-smoke.mjs` tests the HTTP contract against an isolated disposable instance (never port 5080).
+
+### Delivery Timeline Export
+Use **Preview & Export** on a timeline toolbar. Choose an epic roadmap or detailed work-item report, adjust the date range and title, and include actual dates, milestones, or undated items. Reports use the selected projects and configured people/types; timeline search and collapsed rows do not restrict the report.
+
+PDF exports include all A4 landscape pages. PNG (2× resolution) and SVG export the selected page. The Windows app uses a native Save As dialog; browser previews use downloads. PDF pages are rendered images; SVG retains vector text and shapes. Exports are generated locally and do not change Jira or the workspace.

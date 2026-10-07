@@ -25,7 +25,13 @@ public sealed class MainPage : ContentPage
                 if (!Guid.TryParse(id, out var requestId)) return;
                 var request = root.GetProperty("request").GetString();
                 if (request is null) return;
-                var response = await bridge.Dispatch(request);
+                using var parsedRequest = JsonDocument.Parse(request);
+                var command = parsedRequest.RootElement;
+                var response = command.GetProperty("path").GetString() == "/api/desktop/export"
+                    ? command.GetProperty("method").GetString() == "POST"
+                        ? await DesktopExport.Save(command.GetProperty("body"), Window!)
+                        : JsonSerializer.Serialize(new { status = 405, body = new { message = "Use POST for export." } })
+                    : await bridge.Dispatch(request);
                 web.SendRawMessage(JsonSerializer.Serialize(new { channel = "pulse", id, result = response }));
             }
             catch
