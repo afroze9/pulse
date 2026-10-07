@@ -1,18 +1,30 @@
 <script>
   import { onMount } from 'svelte';
   import { UnfoldVertical, FoldVertical } from 'lucide-svelte';
-  import { Timeline } from 'vis-timeline/standalone';
+  import { Timeline, DataSet } from 'vis-timeline/standalone';
   import 'vis-timeline/styles/vis-timeline-graph2d.css';
   import { day, iso, addDays } from './planning.js';
+  import { timelineHierarchy } from './timeline-hierarchy.js';
   export let groups=[]; export let items=[]; export let start='2026-10-05'; export let end='2026-10-27'; export let mode='resources';
   export let onselect=()=>{}; export let oncreate=()=>{}; export let onmove=()=>{};
+  export let revealGroups=false;
   let container; let timeline; let ready=false; let preview=null; let lastDrag=0; let headerHeight=56;
+  let groupData; let groupListener;
+  function setTimelineGroups(nextGroups,nextMode,reveal,expanded){
+    groupData?.off('update',groupListener);
+    groupData=new DataSet(timelineHierarchy.apply(nextMode,nextGroups,expanded??(reveal?true:undefined)));
+    timeline.setGroups(groupData);
+    groupListener=(_event,changes)=>{if(!reveal)timelineHierarchy.remember(nextMode,changes.data);};
+    groupData.on('update',groupListener);
+  }
   function expandAll(expanded){
-    if(timeline)timeline.setGroups(groups.map(group=>({...group,visible:true,...(group.nestedGroups?.length?{nestedGroups:[...group.nestedGroups],showNested:expanded}:{})})));
+    if(!timeline)return;
+    if(!revealGroups)timelineHierarchy.remember(mode,groups.map(group=>({...group,showNested:expanded})));
+    setTimelineGroups(groups,mode,revealGroups,expanded);
   }
   const snap = date => {const d=new Date(date);d.setHours(0,0,0,0);return d;};
   onMount(()=>{
-    timeline=new Timeline(container,items,groups,{
+    timeline=new Timeline(container,items,new DataSet(timelineHierarchy.apply(mode,groups,revealGroups?true:undefined)),{
       start:day(start),end:day(end),rtl:false,onInitialDrawComplete:()=>ready=true,
       timeAxis:mode==='roadmap'?{scale:'week',step:1}:{scale:'day',step:1},orientation:'top',stack:true,showCurrentTime:false,
       groupOrder:'order',margin:{item:{horizontal:0,vertical:7},axis:16},
@@ -93,9 +105,9 @@
     document.addEventListener('pointerup',pointerUp);
     document.addEventListener('pointercancel',cancel);
     document.addEventListener('keydown',keyDown);
-    return()=>{labelObserver.disconnect();labelClasses.disconnect();cancelAnimationFrame(resizeFrame);container.removeEventListener('click',selectRow,true);container.removeEventListener('pointerdown',pointerDown,true);document.removeEventListener('pointermove',pointerMove);document.removeEventListener('pointerup',pointerUp);document.removeEventListener('pointercancel',cancel);document.removeEventListener('keydown',keyDown);timeline.destroy();};
+    return()=>{groupData?.off('update',groupListener);labelObserver.disconnect();labelClasses.disconnect();cancelAnimationFrame(resizeFrame);container.removeEventListener('click',selectRow,true);container.removeEventListener('pointerdown',pointerDown,true);document.removeEventListener('pointermove',pointerMove);document.removeEventListener('pointerup',pointerUp);document.removeEventListener('pointercancel',cancel);document.removeEventListener('keydown',keyDown);timeline.destroy();};
   });
-  $: if(timeline&&ready){timeline.setGroups(groups);timeline.setItems(items);timeline.setOptions({timeAxis:mode==='roadmap'?{scale:'week',step:1}:{scale:'day',step:1}});timeline.setWindow(day(start),day(end),{animation:false});}
+  $: if(timeline&&ready){setTimelineGroups(groups,mode,revealGroups);timeline.setItems(items);timeline.setOptions({timeAxis:mode==='roadmap'?{scale:'week',step:1}:{scale:'day',step:1}});timeline.setWindow(day(start),day(end),{animation:false});}
 </script>
 <div class="timeline-scroll"><div class="timeline-host" class:resources={mode==='resources'} class:projects={mode==='projects'} class:roadmap={mode==='roadmap'} bind:this={container}>
   {#if ready&&mode!=='roadmap'}

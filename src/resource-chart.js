@@ -34,7 +34,7 @@ export function resourceChart(workspace, people, projects, scope, search, start,
       addRollup('rollup-project|'+lane,lane,children,'project-rollup',project.color);
       for(const {story,schedule} of children){
         groups.push({id:story.id,order:order++,treeLevel:2,content:`<button type="button" class="story-label story-row-link" data-work-item="${esc(story.id)}"><small>${esc(story.id)} · ${esc(story.type||'story')}${!schedule?' · Unscheduled':!overlaps({story,schedule})?' · Outside date range':''}</small><strong>${esc(story.title)}</strong></button>`});
-        if(schedule)items.push({id:`story|${story.id}`,group:story.id,start:day(schedule.start),end:day(addDays(schedule.end,1)),className:`resource-ticket story-bar ${project.color}`,content:`<span class="bar-title">${esc(story.id)} · ${esc(story.title)}</span><span class="bar-sub">${Number.isFinite(story.points)?story.points+' SP':'Estimate unknown'} · ${esc(story.status)}</span>`});
+        if(schedule)items.push({id:`story|${story.id}`,group:story.id,start:day(schedule.start),end:day(addDays(schedule.end,1)),className:`resource-ticket story-bar ${project.color}`,content:`<span class="bar-title">${esc(story.id)} · ${esc(story.title)}</span><span class="bar-sub">${Number.isFinite(story.points)?story.points+' SP':'Estimate unknown'} <span class="story-status">${esc(story.status)}</span></span>`});
       }
     }
     for(const date of person.overloaded||[])items.push({id:`risk-${person.id}-${date.date}`,group:person.id,start:day(date.date),end:day(addDays(date.date,1)),type:'background',className:'overload-bg',selectable:false});

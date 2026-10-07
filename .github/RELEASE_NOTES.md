@@ -1,11 +1,11 @@
-Pulse 0.1.2 fixes timeline navigation and ticket details.
+Pulse 0.1.3 improves timeline readability and preserves screen state.
 
-- The Ctrl+K shortcut no longer displays its tooltip over unrelated parts of the window. The shortcut and search-box hint remain available.
-- Timelines open at the beginning of the week. Editable From/To dates support custom ranges, and week presets show the actual dates.
-- Chosen timeline ranges are remembered across reloads and Jira imports.
-- Selecting a ticket opens only that ticket's details, assignee, assignment controls, and planned/actual dates. Person capacity summaries still show their assigned work.
+- Detail sidebars and modal panels own scrolling while open, eliminating the second page scrollbar. Closing a panel restores page scrolling and preserves its position and width.
+- Ticket statuses appear as bold, bordered badges with contrasting text in Resource and Project timelines, in both light and dark themes.
+- Resources and Projects independently remember individual row expansion and collapse choices, including expand/collapse-all, across screen switches and reloads.
+- Search temporarily reveals matching rows without replacing saved expansion choices. Filtering rows out and back in preserves their state.
 
-Download Pulse-0.1.2-win-x64-setup.exe. SHA256SUMS.txt contains its checksum.
+Download Pulse-0.1.3-win-x64-setup.exe. SHA256SUMS.txt contains its checksum.
 
 Installation is per-user on Windows 10 1809+ or Windows 11 x64 (ARM64 via x64 compatibility). .NET and Windows App SDK are included; WebView2 is installed from Microsoft if missing and requires Internet access in that case.
 

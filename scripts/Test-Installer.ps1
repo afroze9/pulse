@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$Installer, [string]$PreviousInstaller, [string]$Version = '0.1.2')
+param([Parameter(Mandatory)][string]$Installer, [string]$PreviousInstaller, [string]$Version = '0.1.3')
 $ErrorActionPreference = 'Stop'
 $pulseRoot = Split-Path $PSScriptRoot -Parent
 $testRoot = Join-Path $pulseRoot ('artifacts\installer-test-' + [guid]::NewGuid().ToString('N'))
