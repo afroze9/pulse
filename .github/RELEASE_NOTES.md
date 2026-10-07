@@ -1,13 +1,11 @@
-Pulse 0.1.1 adds Gantt-style delivery timeline preview and export.
+Pulse 0.1.2 fixes timeline navigation and ticket details.
 
-- Preview an epic roadmap or detailed project/epic/work-item timeline.
-- Choose the title and date range; include planned and actual dates, milestones, and undated items.
-- Export all pages as an A4 landscape PDF, or the selected page as a high-resolution PNG or vector SVG.
-- Save exports locally through the native Windows Save As dialog.
-- Reports respect selected projects and configured people/work item types. Search and collapsed rows do not restrict exports.
-- PDF pages are rendered images; SVG preserves vector text and shapes.
+- The Ctrl+K shortcut no longer displays its tooltip over unrelated parts of the window. The shortcut and search-box hint remain available.
+- Timelines open at the beginning of the week. Editable From/To dates support custom ranges, and week presets show the actual dates.
+- Chosen timeline ranges are remembered across reloads and Jira imports.
+- Selecting a ticket opens only that ticket's details, assignee, assignment controls, and planned/actual dates. Person capacity summaries still show their assigned work.
 
-Download Pulse-0.1.1-win-x64-setup.exe. SHA256SUMS.txt contains its checksum.
+Download Pulse-0.1.2-win-x64-setup.exe. SHA256SUMS.txt contains its checksum.
 
 Installation is per-user on Windows 10 1809+ or Windows 11 x64 (ARM64 via x64 compatibility). .NET and Windows App SDK are included; WebView2 is installed from Microsoft if missing and requires Internet access in that case.
 

@@ -10,7 +10,7 @@ test('exactly 1 SP per day is within capacity; backlog and unassigned do not cre
 
 test('initial view keeps ongoing work visible instead of skipping to a future sprint',()=>{
  const workspace={sprints:[{start:'2026-09-22',end:'2026-10-08'},{start:'2026-10-08',end:'2026-10-22'}],epics:[],stories:[]};
- assert.equal(initialTimelineStart(workspace,'2026-10-02'),'2026-10-02');
- assert.equal(initialTimelineStart(workspace,'2026-09-01'),'2026-09-22');
- assert.equal(initialTimelineStart({...workspace,sprints:[]},'2026-10-02'),'2026-10-02');
+ assert.equal(initialTimelineStart(workspace,'2026-10-02'),'2026-09-28');
+ assert.equal(initialTimelineStart(workspace,'2026-09-01'),'2026-09-21');
+ assert.equal(initialTimelineStart({...workspace,sprints:[]},'2026-10-02'),'2026-09-28');
 });

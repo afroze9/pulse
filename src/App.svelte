@@ -5,6 +5,8 @@
   const sendNative=(type,payload=null)=>globalThis.window?.HybridWebView?.SendEvent?.(type,payload);
   import { Activity, Users, Layers3, Route, ChevronDown, ChevronLeft, ChevronRight, Plus, Search, ArrowUpRight, CircleHelp, X, SlidersHorizontal, AlertTriangle, CalendarDays, ArrowRight, Check, GitBranch, PanelRightClose, Info, Settings2, Undo2 } from 'lucide-svelte';
   import Timeline from './Timeline.svelte';
+  import TimelineDates from './TimelineDates.svelte';
+  import { timelineRangeDays, formatTimelineRange, readTimelineRange, saveTimelineRange } from './timeline-range.js';
   import DeliveryPreview from './DeliveryPreview.svelte';
   let showDeliveryPreview=false;
   import ProjectFilter from './ProjectFilter.svelte';
@@ -18,9 +20,9 @@
   import JiraConnection from './JiraConnection.svelte';
   import AssignmentEditor from './AssignmentEditor.svelte';
   import DataQuality from './DataQuality.svelte';
-  import { allocations, day, iso, addDays, workingDays, dailyLoad, personLoad, escapeHtml as esc, scheduleFor, movePlannedItem, sprintForDate, normalizeWorkspace, initialTimelineStart, resourceLane } from './planning.js';
+  import { allocations, day, iso, addDays, startOfWeek, workingDays, dailyLoad, personLoad, escapeHtml as esc, scheduleFor, movePlannedItem, sprintForDate, normalizeWorkspace, initialTimelineStart, resourceLane } from './planning.js';
   let data=normalizeWorkspace({projects:[],people:[],sprints:[],epics:[],stories:[],dependencies:[]}); let sessionState={phase:'loading',version:null,canUndo:false,error:'',pending:null,remote:null,jira:null}; let showActuals=true; let configuration={projects:[],people:[],types:['epic','story','bug','task']}; let view='resources'; let selectedProjects=[]; let query=''; let onlyRisk=false; let resourceInPeriod=true;
-  let periodStart=iso(new Date()); let periodDays=21; let selected=null; let modal=false; let showPolicy=false; let source='Loading workspace'; let changed=false;
+  let periodStart=startOfWeek(iso(new Date())); let periodDays=21; let rangeChosen=false; let selected=null; let modal=false; let showPolicy=false; let source='Loading workspace'; let changed=false;
   let draft={title:'',person:'',sprint:'',points:3}; let formError=''; let toast=''; let timer;
   const nav=[{id:'resources',label:'Resources',icon:Users},{id:'projects',label:'Projects',icon:Layers3},{id:'roadmap',label:'Roadmap',icon:Route}];
   const headings={resources:['Resource Allocation','The right people. The right work. A little more breathing room.'],projects:['Project Allocation','From the big picture to the stories moving it forward.'],roadmap:['Product Roadmap','One shared direction. Every project in view.']};
@@ -32,7 +34,7 @@
   const sprintOf=id=>data.sprints.find(s=>s.id===id);
   let loadedWorkspace=false; let loadedSource=null;
   const session=new WorkspaceSession(workspaceApi,state=>{
-    if(state.data&&state.source==='jira'&&(!loadedWorkspace||loadedSource!=='jira')){
+    if(state.data&&!rangeChosen&&(!loadedWorkspace||(state.source==='jira'&&loadedSource!=='jira'))){
       periodStart=initialTimelineStart(state.data,iso(new Date()));
     }
     if(state.source)loadedSource=state.source;
@@ -42,6 +44,10 @@
     source=state.version===null?(state.phase==='loading'?'Loading workspace':'Workspace unavailable'):state.source==='jira'?'Jira workspace':'Local workspace';
   });
   onMount(()=>{
+    try {
+      const saved=readTimelineRange(window.localStorage);
+      if(saved){periodStart=saved.start;periodDays=saved.days;rangeChosen=true;}
+    } catch { /* Date selection remains available when local storage is blocked. */ }
     session.load();
     const command=event=>{
       const {type,payload}=event.detail;
@@ -73,6 +79,11 @@
   async function importJira(body){if(!canEdit())return;session.emit({phase:'saving',error:''});try{session.accept(await workspaceApi.jiraSync(body));selectedProjects=configuration.projects.slice();notify('Jira import saved');}catch(error){session.emit({phase:'ready',error:error.message});throw error;}}
   $: bookings=allocations(data.stories,data.sprints,data.epics);
   $: periodEnd=addDays(periodStart,periodDays-1);
+  function setTimelineRange(start,days=periodDays){
+    if(!Number.isSafeInteger(days)||days<1||timelineRangeDays(start,addDays(start,days-1))!==days)return;
+    periodStart=start;periodDays=days;rangeChosen=true;
+    try { saveTimelineRange(window.localStorage,start,days); } catch { /* Storage is optional. */ }
+  }
   $: quarterMonth=Math.floor(day(periodStart).getMonth()/3)*3;
   $: quarterStart=`${day(periodStart).getFullYear()}-${String(quarterMonth+1).padStart(2,'0')}-01`;
   $: quarterFinish=iso(new Date(day(periodStart).getFullYear(),quarterMonth+3,1));
@@ -100,13 +111,13 @@
     selectedProjects=[dates.project];periodStart=dates.start;
     changeView(mode);query=item.id;
   }
-  $: selectedPerson=selected?.kind==='person'?personOf(selected.id):selectedBooking?personOf(selectedBooking.person):selectedStory?personOf(selectedStory.person):null;
+  $: selectedPerson=selected?.kind==='person'?personOf(selected.id):selectedBooking?personOf(selectedBooking.person):null;
   $: detailLoad=selectedPerson?personLoad(selectedPerson.id,bookings,periodStart,periodEnd):null;
   $: backlog=data.stories.filter(s=>!scheduleFor(s,data.sprints,data.epics)&&configuration.types.includes(s.type||'story')&&(!s.person||configuration.people.includes(s.person))&&selectedProjects.includes(s.project||data.epics.find(e=>e.id===s.epic)?.project));
   $: scopedStories=data.stories.filter(s=>selectedProjects.includes(s.project)&&configuration.types.includes(s.type||'story')&&(!s.person||configuration.people.includes(s.person)));
   $: scheduledStories=scopedStories.map(s=>scheduleFor(s,data.sprints,data.epics)).filter(Boolean);
   $: schedulesInWindow=scheduledStories.filter(s=>s.start<timelineEnd&&s.end>=timelineStart);
-  function showScheduledWork(){const dates=scheduledStories.map(s=>s.start).sort();periodStart=dates.find(d=>d>=iso(new Date()))||dates.at(-1)||periodStart;}
+  function showScheduledWork(){const dates=scheduledStories.map(s=>s.start).sort();setTimelineRange(startOfWeek(dates.find(d=>d>=iso(new Date()))||dates.at(-1)||periodStart));}
   function notify(message){toast=message;clearTimeout(timer);timer=setTimeout(()=>toast='',3500);}
   function changeView(id){view=id;selected=null;query='';onlyRisk=false;}
   function makeChart(mode,people,projects,bs,workspace,search,start,end,scope,actuals,inPeriod){
@@ -225,7 +236,31 @@
       </div>
       {/if}
       <section class="planning-panel" aria-label="Planning timeline">
-        <div class="planning-toolbar"><div class="date-controls"><button class="icon-button" aria-label="Previous period" onclick={()=>periodStart=addDays(view==='roadmap'?quarterStart:periodStart,view==='roadmap'?-1:-periodDays)}><ChevronLeft size={17}/></button><strong>{view==='roadmap'?`${shortDate(quarterStart)} – ${shortDate(addDays(quarterFinish,-1))}, ${day(periodStart).getFullYear()}`:`${shortDate(periodStart)} – ${shortDate(periodEnd)}, ${day(periodEnd).getFullYear()}`}</strong><button class="icon-button" aria-label="Next period" onclick={()=>periodStart=view==='roadmap'?quarterFinish:addDays(periodStart,periodDays)}><ChevronRight size={17}/></button><button class="plain-button" onclick={()=>periodStart=iso(new Date())}>Today</button></div><div class="toolbar-right"><button class="plain-button" disabled={sessionState.phase!=='ready'} onclick={()=>showDeliveryPreview=true}>Preview &amp; Export</button><button class="plain-button" onclick={undo} disabled={!editable||!sessionState.canUndo} title="Undo last edit"><Undo2 size={13}/>Undo</button><label class="actual-toggle"><input type="checkbox" bind:checked={showActuals}/>Actuals</label>{#if view==='resources'}<label class="actual-toggle" title="Uncheck to include older, future, and unscheduled tickets"><input type="checkbox" bind:checked={resourceInPeriod}/>In This Period</label>{/if}<ProjectFilter projects={activeProjects} bind:value={selectedProjects}/>{#if view!=='roadmap'}<select class="zoom-select" aria-label="Timeline range" bind:value={periodDays}><option value={14}>2 Weeks</option><option value={21}>3 Weeks</option><option value={28}>4 Weeks</option></select>{:else}<span class="plain-button">Quarter View</span>{/if}</div></div>
+        <div class="planning-toolbar">
+          <div class="date-controls">
+            <button class="icon-button" aria-label="Previous period" onclick={()=>setTimelineRange(addDays(view==='roadmap'?quarterStart:periodStart,view==='roadmap'?-1:-periodDays))}><ChevronLeft size={17}/></button>
+            {#if view==='roadmap'}
+              <strong>{formatTimelineRange(quarterStart,addDays(quarterFinish,-1))}</strong>
+            {:else}
+              <TimelineDates start={periodStart} end={periodEnd} onchange={range=>setTimelineRange(range.start||periodStart,range.end?timelineRangeDays(periodStart,range.end):periodDays)}/>
+            {/if}
+            <button class="icon-button" aria-label="Next period" onclick={()=>setTimelineRange(view==='roadmap'?quarterFinish:addDays(periodStart,periodDays))}><ChevronRight size={17}/></button>
+            <button class="plain-button" onclick={()=>setTimelineRange(iso(new Date()))}>Today</button>
+          </div>
+          <div class="toolbar-right">
+            <button class="plain-button" disabled={sessionState.phase!=='ready'} onclick={()=>showDeliveryPreview=true}>Preview &amp; Export</button>
+            <button class="plain-button" onclick={undo} disabled={!editable||!sessionState.canUndo} title="Undo last edit"><Undo2 size={13}/>Undo</button>
+            <label class="actual-toggle"><input type="checkbox" bind:checked={showActuals}/>Actuals</label>
+            {#if view==='resources'}<label class="actual-toggle" title="Uncheck to include older, future, and unscheduled tickets"><input type="checkbox" bind:checked={resourceInPeriod}/>In This Period</label>{/if}
+            <ProjectFilter projects={activeProjects} bind:value={selectedProjects}/>
+            {#if view!=='roadmap'}
+              <select class="zoom-select" aria-label="Timeline range" value={periodDays} onchange={event=>setTimelineRange(periodStart,Number(event.currentTarget.value))}>
+                {#if ![14,21,28].includes(periodDays)}<option value={periodDays}>{formatTimelineRange(periodStart,periodEnd)} · Custom</option>{/if}
+                {#each [14,21,28] as days}<option value={days}>{formatTimelineRange(periodStart,addDays(periodStart,days-1))} · {days/7} Weeks</option>{/each}
+              </select>
+            {:else}<span class="plain-button">Quarter View</span>{/if}
+          </div>
+        </div>
         <div class="timeline-instructions"><span>Drag empty space to create · drag bars to move · drag edges to resize</span><span>{view==='resources'?'Expand projects for tickets · drag between people to reassign':view==='projects'?'Current work first · move stories across epic lanes':'Move epics across project lanes'} · double-click for details</span></div><div class="timeline-subhead"><label class="search-box"><Search size={15}/><input aria-label="Search timeline" placeholder={view==='resources'?'Find a person, project, or ticket…':view==='projects'?'Find an epic or story…':'Find an epic…'} bind:value={query}/></label><div class="legend">{#each visibleProjects as p}<span><i class="project-dot {p.color}"></i>{p.name}</span>{/each}{#if view==='resources'}<span><i class="risk-swatch"></i>Over Capacity</span>{/if}</div></div>
         {#if chart.groups.length}<Timeline groups={chart.groups} items={chart.items} start={timelineStart} end={timelineEnd} mode={view} onselect={selectItem} oncreate={openPlanner} onmove={moveItem}/>{:else}<div class="empty-state"><Search size={28}/><h3>No Matches in This View</h3><p>Try a different name or clear the filters.</p><button class="plain-button" onclick={()=>{query='';selectedProjects=activeProjects.map(p=>p.id);onlyRisk=false;}}>Clear Filters</button></div>{/if}
         <div class="timeline-footer"><span><Info size={14}/>{view==='resources'?'Planned dates drive capacity · actuals are recorded separately':view==='projects'?'Drag edits planned dates · untouched stories inherit sprint dates':'Colored bars: planned · charcoal bars: actual · epics do not shift child dates'}</span><span>{view==='resources'?'Person labels show peak daily load across all projects':view==='projects'?'Independent sprint calendars':'◆ Release milestone'}</span></div>
@@ -251,13 +286,16 @@
   {#if selectedPerson}
     <div class="drawer-person"><span class="avatar large {selectedPerson.color}">{selectedPerson.initials}</span><div><h2>{selectedPerson.name}</h2><p>{selectedPerson.role}</p></div></div>
     {#if selectedBooking}{@const p=projectOf(selectedBooking.project)}{@const s=sprintOf(selectedBooking.sprint)}<div class="booking-highlight {p.color}"><span>{p.name} · {s?.name||'No sprint'}</span><strong>{selectedBooking.points} SP <small>→ {number(selectedBooking.dailyRate)} SP / workday</small></strong><p>{shortDate(selectedBooking.start)} – {shortDate(selectedBooking.end)} · {workingDays(selectedBooking.start,selectedBooking.end).length} workdays · {selectedBooking.explicit?'Planned dates':'From sprint'}</p></div>{/if}
-    {#if selectedStory}<h3>{selectedStory.id} · {selectedStory.title}</h3><p class="muted">{selectedStory.points??'Unknown'} SP · {selectedStory.status}</p>{/if}
     <div class="detail-heading"><h3>Combined Daily Load</h3><span class:danger={detailLoad.peak>1}>{pct(detailLoad.peak)}% peak</span></div><p class="detail-caption">All projects · {shortDate(periodStart)} – {shortDate(periodEnd)} · capacity 1 SP/day</p>
     <div class="daily-grid">{#each detailLoad.days as d}<div class:hot={d.load>1.000001} class:free={d.load===0} title={`${shortDate(d.date)}: ${number(d.load)} SP`}><small>{day(d.date).getDate()}</small><strong>{number(d.load)}</strong></div>{/each}</div>
     {#if detailLoad.overloaded.length}<div class="detail-warning"><AlertTriangle size={17}/><span><strong>{detailLoad.overloaded.length} days over capacity</strong>Move work to another sprint or reassign a story to free up space.</span></div>{/if}
     <h3 class="spaced-heading">{selectedBooking?'Stories in This Allocation':'Assigned Stories'}</h3><p class="detail-caption">Try reassigning a story. All three views update.</p>
     {#each (selectedBooking?selectedBooking.stories:data.stories.filter(s=>s.person===selectedPerson.id&&scheduleFor(s,data.sprints,data.epics))) as s}<div class="detail-story"><span class="issue-key">{s.id}</span><strong>{s.title}</strong><div><span>{s.points} SP · {s.status}</span><select aria-label={`Reassign ${s.id}`} value={s.person} disabled={!editable} onchange={e=>reassign(s.id,e.currentTarget.value)}>{#each activePeople as p}<option value={p.id}>{p.name}</option>{/each}</select></div><button class="story-dates-button" onclick={()=>selected={kind:'story',id:s.id}}>Edit Planned & Actual Dates <ArrowRight size={12}/></button></div>{/each}
-  {:else if selectedStory}<h2 class="epic-detail-title">{selectedStory.id} · {selectedStory.title}</h2><p class="muted">{selectedStory.points??'Unknown'} SP · {selectedStory.status} · Unassigned</p>
+  {:else if selectedStory}
+    {@const assignee=personOf(selectedStory.person)}
+    <h2 class="epic-detail-title">{selectedStory.id} · {selectedStory.title}</h2>
+    <p class="muted">{selectedStory.points??'Unknown'} SP · {selectedStory.status}</p>
+    <p class="detail-caption">{assignee?`Assigned to ${assignee.name}`:'Unassigned'}</p>
   {:else if selectedEpic}
     {@const p=projectOf(selectedEpic.project)}<span class="project-pill {p.color}">{p.name} · {selectedEpic.id}</span><h2 class="epic-detail-title">{selectedEpic.title}</h2><p class="epic-goal">{selectedEpic.goal}</p><div class="detail-status"><span>{selectedEpic.status}</span><strong>{selectedEpic.progress}% complete</strong></div><div class="progress-track"><i style={`width:${selectedEpic.progress}%`}></i></div><dl><div><dt>Planned Window</dt><dd>{selectedEpic.plannedStart?shortDate(selectedEpic.plannedStart):'Not set'} – {selectedEpic.plannedEnd?shortDate(selectedEpic.plannedEnd):'Not set'}</dd></div><div><dt>Project Lead</dt><dd>{p.owner}</dd></div><div><dt>Milestone</dt><dd>◆ {selectedEpic.milestone}</dd></div><div><dt>Target Date</dt><dd>{selectedEpic.target?shortDate(selectedEpic.target):'Not set'}</dd></div></dl>
     {#if selectedEpic.dependsOn}{@const dep=data.epics.find(e=>e.id===selectedEpic.dependsOn)}<div class="dependency-callout"><GitBranch size={18}/><h3>Depends on {dep?.title||'Unknown dependency'}</h3><p>{dep?.milestone||'Milestone'} is planned for {dep?.target?shortDate(dep.target):'unknown date'}. Dependent work can begin earlier, but release needs this milestone.</p><button class="text-button" disabled={!dep} onclick={()=>selected={kind:'epic',id:dep.id}}>Inspect Dependency <ArrowRight size={15}/></button></div>{/if}

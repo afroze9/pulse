@@ -51,6 +51,9 @@ public sealed class PulseTitleBar
             ApplyAppearance();
             var shortcut = new KeyboardAccelerator { Key = VirtualKey.K, Modifiers = VirtualKeyModifiers.Control };
             shortcut.Invoked += (_, args) => { FocusSearch(); args.Handled = true; };
+            // The shortcut is window-wide; its automatic tooltip would also cover the whole window.
+            // Keep the shortcut discoverable in the search placeholder instead.
+            content.KeyboardAcceleratorPlacementMode = Microsoft.UI.Xaml.Input.KeyboardAcceleratorPlacementMode.Hidden;
             content.KeyboardAccelerators.Add(shortcut);
         };
     }

@@ -6,6 +6,7 @@ export function normalizeWorkspace(input) {
 export const day = value => new Date(`${value}T00:00:00`);
 export const iso = value => `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}`;
 export function addDays(value, count) { const date = day(value); date.setDate(date.getDate()+count); return iso(date); }
+export function startOfWeek(value) { return addDays(value,-((day(value).getDay()+6)%7)); }
 export function workingDays(start, end) { const result=[]; for(let date=start; date<=end; date=addDays(date,1)) if(![0,6].includes(day(date).getDay())) result.push(date); return result; }
 export function scheduleFor(story, sprints, epics=[]) {
   const sprint=sprints.find(s=>s.id===story.sprint);
@@ -75,9 +76,9 @@ export function movePlannedItem(data, {kind,id,group,start,end}, view) {
 
 export function initialTimelineStart(workspace,today){
   const windows=[...workspace.sprints,...[...workspace.stories,...workspace.epics].map(item=>({start:item.plannedStart,end:item.plannedEnd}))].filter(window=>window.start&&window.end);
-  if(windows.some(window=>window.start<=today&&window.end>=today))return today;
+  if(windows.some(window=>window.start<=today&&window.end>=today))return startOfWeek(today);
   const starts=windows.map(window=>window.start).sort();
-  return starts.find(start=>start>=today)||starts.at(-1)||today;
+  return startOfWeek(starts.find(start=>start>=today)||starts.at(-1)||today);
 }
 
 export const resourceProjectLane=(person,project)=>'resource-project|'+encodeURIComponent(person)+'|'+encodeURIComponent(project);

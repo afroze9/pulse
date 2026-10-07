@@ -12,7 +12,7 @@ Pulse appears in the Start menu and Windows Installed Apps. Updating or uninstal
 
 [Windows Build and Installer](https://github.com/afroze9/pulse/actions/workflows/windows.yml) runs on main, pull requests, version tags, and manual dispatch. It checks Svelte, runs frontend/backend tests, builds the self-contained application and installer, then validates install, installed-app startup, repair/upgrade, startup again, uninstall, and data preservation. Native startup checks wait for the bundled Svelte UI and successful in-process workspace load, and exercise an isolated encrypted credential key. The real user workspace and Jira credentials are not used by these tests.
 
-Every successful build uploads an installer and SHA256SUMS.txt as workflow artifacts. A tag matching version.json (for example v0.1.1) publishes the tested files as a GitHub prerelease. The release job runs only after the Windows job passes. No deployment credentials are needed: GitHub's repository-scoped token is used only in the release job.
+Every successful build uploads an installer and SHA256SUMS.txt as workflow artifacts. A tag matching version.json (for example v0.1.2) publishes the tested files as a GitHub prerelease. The release job runs only after the Windows job passes. No deployment credentials are needed: GitHub's repository-scoped token is used only in the release job.
 
 Local packaging:
 
@@ -21,7 +21,7 @@ npm ci
 dotnet workload install maui-windows
 ./scripts/Build-Installer.ps1
 # Run lifecycle tests in a clean Windows user profile with no existing installed Pulse.
-./scripts/Test-Installer.ps1 -Installer artifacts/installer/Pulse-0.1.1-win-x64-setup.exe
+./scripts/Test-Installer.ps1 -Installer artifacts/installer/Pulse-0.1.2-win-x64-setup.exe
 ~~~
 
 The pinned Inno Setup compiler is installed per user under LocalAppData/PulseBuild. Its checksum and publisher signature are checked; the bundled WebView2 bootstrapper's Microsoft signature is checked. Installer source is in installer/Pulse.iss. Signing and automatic update delivery are not configured yet.
